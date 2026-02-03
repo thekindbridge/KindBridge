@@ -67,6 +67,7 @@ const RequestForm: React.FC<RequestFormProps> = ({ initialService = '' }) => {
       await sendServiceRequestEmail({
         name: formData.name,
         email: formData.contact,
+        phoneNumber: formData.phoneNumber || '',
         service: serviceName,
         message: formData.message,
         date: new Date().toLocaleString(),

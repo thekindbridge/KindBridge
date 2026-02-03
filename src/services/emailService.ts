@@ -14,6 +14,7 @@ export const initEmailJS = () => {
 export interface ServiceRequestEmailPayload {
   name: string;
   email: string;
+  phoneNumber?: string;
   service: string;
   message: string;
   date: string;
@@ -33,6 +34,7 @@ export const sendServiceRequestEmail = async (payload: ServiceRequestEmailPayloa
       {
         name: payload.name,
         email: payload.email,
+        phoneNumber: payload.phoneNumber || '',
         service: payload.service,
         message: payload.message,
         date: payload.date,
