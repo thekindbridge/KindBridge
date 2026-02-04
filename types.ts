@@ -20,6 +20,16 @@ export interface Service {
   imageUrl: string;
 }
 
+export interface ServiceDetail {
+  title: string;
+  shortDescription: string;
+  fullDescription: string;
+  features: string[];
+  technologies: string[];
+  idealFor: string;
+  deliveryTime: string;
+}
+
 export interface ValuePoint {
   title: string;
   description: string;

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Service, ValuePoint } from './types';
+import { Service, ServiceDetail, ServiceId, ValuePoint } from './types';
 
 export const PROJECT_SERVICES: Service[] = [
   {
@@ -19,19 +19,19 @@ export const PROJECT_SERVICES: Service[] = [
     id: 'automation',
     title: 'Automation & Workflow Systems',
     description: 'Automating repetitive tasks and business workflows using smart systems.',
-    imageUrl: 'https://images.unsplash.com/photo-1518433278981-11271f4a7c2b?auto=format&fit=crop&q=80&w=800&h=600',
+    imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800&h=600',
   },
   {
     id: 'data_analytics',
     title: 'Data Analytics & Dashboards',
     description: 'Interactive dashboards and data insights for informed decision-making.',
-    imageUrl: 'https://images.unsplash.com/photo-1551288049-bbbda536339a?auto=format&fit=crop&q=80&w=800&h=600',
+    imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=800&h=600',
   },
   {
     id: 'academic_projects',
     title: 'Academic Final-Year Projects',
     description: 'Complete guidance and development for B.Tech, M.Tech, and MCA projects.',
-    imageUrl: 'https://images.unsplash.com/photo-1523240715639-99a8088fb98b?auto=format&fit=crop&q=80&w=800&h=600',
+    imageUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=80&w=800&h=600',
   },
 ];
 
@@ -67,6 +67,169 @@ export const SMALL_SERVICES: Service[] = [
     imageUrl: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&q=80&w=800&h=600',
   },
 ];
+
+export const SERVICE_DETAILS: Record<ServiceId, ServiceDetail> = {
+  full_stack: {
+    title: 'Full-Stack Web Applications',
+    shortDescription: 'End-to-end web products with reliable architecture and polished UX.',
+    fullDescription:
+      'We design and build complete web applications that balance performance, usability, and long-term maintainability. From requirements to deployment, we focus on scalable architecture, clean interfaces, and robust backend systems tailored to your business goals.',
+    features: [
+      'Product discovery and technical planning',
+      'Responsive, accessible UI with reusable components',
+      'Secure authentication and role-based access',
+      'API design and integration',
+      'Deployment guidance and handoff documentation',
+    ],
+    technologies: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Firebase', 'Vercel'],
+    idealFor: 'Startups, small businesses, and teams launching or modernizing web platforms.',
+    deliveryTime: '5 to 7 days depending on scope and integrations.',
+  },
+  ai_ml: {
+    title: 'AI / ML Model Development',
+    shortDescription: 'Production-ready machine learning solutions from data to deployment.',
+    fullDescription:
+      'We build custom AI and ML models that solve real business problems and integrate seamlessly into your product. Our process includes data preparation, model training, evaluation, and deployment strategies to ensure reliable performance in real-world environments.',
+    features: [
+      'Data assessment and feature engineering',
+      'Model selection, training, and evaluation',
+      'Explainability and bias review',
+      'API or pipeline integration',
+      'Performance monitoring recommendations',
+    ],
+    technologies: ['Python', 'scikit-learn', 'TensorFlow', 'PyTorch', 'FastAPI', 'Pandas'],
+    idealFor: 'Teams seeking predictive analytics, automation, or intelligent decision systems.',
+    deliveryTime: '4 to 7 days based on data quality and complexity.',
+  },
+  automation: {
+    title: 'Automation & Workflow Systems',
+    shortDescription: 'Streamlined operations through smart, repeatable workflows.',
+    fullDescription:
+      'We automate repetitive processes to reduce manual effort and improve reliability. From internal operations to customer-facing workflows, we design systems that connect tools, trigger actions, and provide visibility into execution.',
+    features: [
+      'Workflow mapping and optimization',
+      'Integration across apps and services',
+      'Scheduled or event-driven automation',
+      'Error handling and notifications',
+      'Audit trails and reporting',
+    ],
+    technologies: ['Node.js', 'Python', 'Zapier', 'Make', 'Firebase', 'REST APIs'],
+    idealFor: 'Operations teams, founders, and businesses scaling manual processes.',
+    deliveryTime: '3 to 7 days depending on integrations and workflow depth.',
+  },
+  data_analytics: {
+    title: 'Data Analytics & Dashboards',
+    shortDescription: 'Actionable insights with clean, interactive dashboards.',
+    fullDescription:
+      'We transform raw data into clear, decision-ready dashboards. Our focus is on accuracy, clarity, and real-time visibility so you can track KPIs, spot trends, and make confident decisions faster.',
+    features: [
+      'KPI definition and metric alignment',
+      'Data modeling and cleaning',
+      'Interactive charts and filters',
+      'Role-based access to reports',
+      'Documentation for ongoing updates',
+    ],
+    technologies: ['React', 'TypeScript', 'D3.js', 'Chart.js', 'SQL', 'Supabase'],
+    idealFor: 'Business leaders and analysts who need trustworthy reporting.',
+    deliveryTime: '4 to 7 days based on data sources and complexity.',
+  },
+  academic_projects: {
+    title: 'Academic Final-Year Projects',
+    shortDescription: 'Guided, high-quality project development for academic success.',
+    fullDescription:
+      'We provide structured mentoring and development support for final-year academic projects. From topic selection to implementation and documentation, we help students deliver polished, presentation-ready outcomes.',
+    features: [
+      'Project scoping and feasibility review',
+      'Architecture planning and implementation',
+      'Documentation and report assistance',
+      'Testing and validation guidance',
+      'Presentation and demo preparation',
+    ],
+    technologies: ['React', 'Python', 'Java', 'MySQL', 'Firebase', 'Git'],
+    idealFor: 'B.Tech, M.Tech, and MCA students seeking reliable project support.',
+    deliveryTime: '5 to 7 days based on project complexity and timeline.',
+  },
+  debugging: {
+    title: 'Code Debugging & Fixes',
+    shortDescription: 'Fast, accurate bug identification and resolution.',
+    fullDescription:
+      'We diagnose issues efficiently and deliver clean fixes with minimal disruption. Our approach focuses on root-cause analysis, safe refactoring, and clear explanations to prevent future regressions.',
+    features: [
+      'Root-cause analysis',
+      'Targeted fixes with minimal risk',
+      'Optional refactors for stability',
+      'Regression checks and validation',
+      'Clear summary of changes',
+    ],
+    technologies: ['JavaScript', 'TypeScript', 'Python', 'React', 'Node.js', 'Jest'],
+    idealFor: 'Teams needing urgent fixes or stability improvements.',
+    deliveryTime: '1 to 5 days depending on severity and scope.',
+  },
+  mini_projects: {
+    title: 'Mini Projects / Assignments',
+    shortDescription: 'Compact builds with clean code and strong fundamentals.',
+    fullDescription:
+      'We help deliver small projects and assignments with attention to structure, clarity, and best practices. Each build is organized for easy evaluation and future improvements.',
+    features: [
+      'Well-structured project setup',
+      'Clear, readable codebase',
+      'Core features fully implemented',
+      'Basic testing or validation',
+      'Concise documentation',
+    ],
+    technologies: ['HTML', 'CSS', 'JavaScript', 'React', 'Python', 'Git'],
+    idealFor: 'Students and learners with deadlines or lab requirements.',
+    deliveryTime: '3 to 10 days depending on requirements.',
+  },
+  resume_support: {
+    title: 'Resume & Portfolio Support',
+    shortDescription: 'Professional presentation of your skills and projects.',
+    fullDescription:
+      'We craft or refine technical resumes and portfolios that highlight your strengths. Expect clean formatting, clear impact statements, and a cohesive personal brand.',
+    features: [
+      'Resume review and rewrite',
+      'Project summaries and impact bullets',
+      'Portfolio content structure',
+      'ATS-friendly formatting',
+      'LinkedIn alignment tips',
+    ],
+    technologies: ['Figma', 'Canva', 'Notion', 'Google Docs', 'Markdown'],
+    idealFor: 'Students and professionals preparing for internships or jobs.',
+    deliveryTime: '2 to 5 days depending on revisions.',
+  },
+  system_design: {
+    title: 'System Design Diagrams',
+    shortDescription: 'Clear architecture visuals that communicate systems effectively.',
+    fullDescription:
+      'We create crisp, easy-to-understand diagrams that explain how systems work. This includes architecture, data flow, ER, UML, and process diagrams for technical or academic use.',
+    features: [
+      'Architecture and data flow diagrams',
+      'ER and UML diagrams',
+      'Clean visual hierarchy and labels',
+      'Multiple export formats',
+      'Revision support',
+    ],
+    technologies: ['Lucidchart', 'Figma', 'Draw.io', 'Mermaid', 'PlantUML'],
+    idealFor: 'Teams and students needing clear system communication.',
+    deliveryTime: '2 to 7 days depending on scope.',
+  },
+  simplification: {
+    title: 'Content Simplification',
+    shortDescription: 'Complex technical content translated into clear language.',
+    fullDescription:
+      'We rewrite and structure dense technical material to make it easier to understand. This includes summaries, notes, and learning aids that preserve accuracy while improving clarity.',
+    features: [
+      'Content restructuring and editing',
+      'Visual explanations and examples',
+      'Glossary and key terms',
+      'Study-friendly formatting',
+      'Iterative review',
+    ],
+    technologies: ['Google Docs', 'Notion', 'Markdown', 'Figma'],
+    idealFor: 'Students, educators, and teams preparing learning materials.',
+    deliveryTime: '1 to 4 days depending on length.',
+  },
+};
 
 export const ALL_SERVICES = [...PROJECT_SERVICES, ...SMALL_SERVICES];
 

@@ -5,16 +5,22 @@ import { Service, ServiceId } from '../types';
 interface ServiceCardProps {
   service: Service;
   onSelect: (id: ServiceId) => void;
+  onMoreInfo: (id: ServiceId) => void;
 }
 
-const ServiceCard: React.FC<ServiceCardProps> = ({ service, onSelect }) => {
+const ServiceCard: React.FC<ServiceCardProps> = ({ service, onSelect, onMoreInfo }) => {
   return (
     <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
       <div className="h-64 overflow-hidden relative">
-        <img 
-          src={service.imageUrl} 
-          alt={service.title}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+        <div
+          className="w-full h-full transition-transform duration-700 group-hover:scale-110"
+          role="img"
+          aria-label={service.title}
+          style={{
+            backgroundImage: `url(${service.imageUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
         />
         <div className="absolute inset-0 service-card-overlay opacity-80"></div>
         <div className="absolute bottom-6 left-6 right-6">
@@ -33,6 +39,13 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onSelect }) => {
           <svg className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
           </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => onMoreInfo(service.id)}
+          className="mt-4 w-full text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+        >
+          More Info
         </button>
       </div>
     </div>

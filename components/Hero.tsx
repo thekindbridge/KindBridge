@@ -3,7 +3,7 @@ import React from 'react';
 
 const Hero: React.FC = () => {
   return (
-    <section className="relative h-screen min-h-[600px] flex items-center overflow-hidden">
+    <section className="relative h-[85vh] min-h-[520px] flex items-center overflow-hidden">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <img 
@@ -16,20 +16,20 @@ const Hero: React.FC = () => {
 
       <div className="container mx-auto px-6 relative z-10">
         <div className="max-w-2xl animate-fade-in-up">
-          <span className="inline-block py-1 px-3 mb-6 text-xs font-bold tracking-widest text-blue-600 uppercase bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400 rounded">
+          <span className="inline-block py-1 px-3 mb-4 text-[11px] font-bold tracking-widest text-blue-600 uppercase bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400 rounded">
             Humanity Powered Technology
           </span>
-          <h1 className="text-5xl md:text-7xl font-bold text-slate-900 dark:text-white leading-[1.1] mb-8">
+          <h1 className="text-4xl md:text-6xl font-bold text-slate-900 dark:text-white leading-[1.1] mb-6">
             Connecting People to Solutions <span className="text-blue-600">with Care.</span>
           </h1>
-          <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-10 leading-relaxed max-w-xl">
+          <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 mb-8 leading-relaxed max-w-xl">
             We bridge the gap between high-tech possibilities and human-centered needs. From AI development to personal education, we deliver excellence with a heart.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <a href="#request" className="inline-flex items-center justify-center px-8 py-4 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 transition-all transform hover:-translate-y-1 shadow-lg shadow-blue-200 dark:shadow-blue-900/20">
+            <a href="#request" className="inline-flex items-center justify-center px-7 py-3 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 transition-all transform hover:-translate-y-1 shadow-lg shadow-blue-200 dark:shadow-blue-900/20">
               Request a Service
             </a>
-            <a href="#services" className="inline-flex items-center justify-center px-8 py-4 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-semibold rounded-full border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
+            <a href="#services" className="inline-flex items-center justify-center px-7 py-3 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-semibold rounded-full border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
               Explore Services
             </a>
           </div>
