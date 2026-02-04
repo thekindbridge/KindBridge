@@ -21,7 +21,7 @@ const RequestForm: React.FC<RequestFormProps> = ({ initialService = '' }) => {
     message: '',
   });
 
-  const [submitted, setSubmitted] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -74,23 +74,36 @@ const RequestForm: React.FC<RequestFormProps> = ({ initialService = '' }) => {
       });
 
       console.log('Request submitted with ID:', requestId);
-      setSubmitted(true);
+      setIsSubmitted(true);
       
       // Reset form
       setFormData({
         name: '',
         contact: '',
         phoneNumber: '',
-        service: initialService,
+        service: '',
         message: '',
       });
-
-      setTimeout(() => setSubmitted(false), 5000);
     } catch (err) {
       console.error('Error submitting form:', err);
       setError('Failed to submit form. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRequestAnother = () => {
+    setIsSubmitted(false);
+    setFormData({
+      name: '',
+      contact: '',
+      phoneNumber: '',
+      service: '',
+      message: '',
+    });
+    const section = document.getElementById('request');
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -101,7 +114,7 @@ const RequestForm: React.FC<RequestFormProps> = ({ initialService = '' }) => {
           {error}
         </div>
       )}
-      {submitted ? (
+      {isSubmitted ? (
         <div className="text-center py-12 animate-fade-in">
           <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,10 +122,17 @@ const RequestForm: React.FC<RequestFormProps> = ({ initialService = '' }) => {
             </svg>
           </div>
           <h3 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Request Submitted!</h3>
-          <p className="text-slate-600 dark:text-slate-400 mb-4">We will get back to you with the utmost care within 24 hours.</p>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">We will get back to you within 24 hours.</p>
           <p className="text-sm text-slate-500 dark:text-slate-500">
             You can track your request status in the <strong>My Requests</strong> section.
           </p>
+          <button
+            type="button"
+            onClick={handleRequestAnother}
+            className="mt-8 w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors duration-300 shadow-md shadow-blue-200 dark:shadow-blue-900/20 active:scale-[0.98]"
+          >
+            Request Another Service
+          </button>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
