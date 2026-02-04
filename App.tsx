@@ -265,7 +265,7 @@ const AppContent: React.FC<{ theme: 'light' | 'dark'; toggleTheme: () => void }>
             </p>
           </div>
 
-          <RequestForm initialService={selectedService} />
+          <RequestForm initialService={selectedService} onNavigate={handleNavigate} />
         </div>
       </section>
 
