@@ -11,7 +11,8 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, onNavigate }) => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const { currentUser, isAdmin } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { currentUser, isAdmin, setShowProfileModal } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,6 +21,16 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, onNavigate }) => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleMobileNavigate = (page: string) => {
+    onNavigate(page);
+    setIsMenuOpen(false);
+  };
+
+  const handleMobileProfile = () => {
+    setShowProfileModal(true);
+    setIsMenuOpen(false);
+  };
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'glass shadow-sm py-4' : 'bg-transparent py-6'}`}>
@@ -88,11 +99,41 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, onNavigate }) => {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" /></svg>
               )}
            </button>
-           <button className="text-slate-900 dark:text-white">
+           <button
+             className="text-slate-900 dark:text-white"
+             onClick={() => setIsMenuOpen(prev => !prev)}
+             aria-expanded={isMenuOpen}
+             aria-label="Toggle menu"
+           >
              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
              </svg>
            </button>
+        </div>
+      </div>
+
+      <div
+        className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+          isMenuOpen ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'
+        }`}
+      >
+        <div className="container mx-auto px-6 pb-4">
+          <div className="mt-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 shadow-lg backdrop-blur">
+            <div className="p-3 space-y-2">
+              <button
+                onClick={() => handleMobileNavigate('my-requests')}
+                className="w-full px-4 py-3 rounded-xl text-left font-semibold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-200"
+              >
+                My Requests
+              </button>
+              <button
+                onClick={handleMobileProfile}
+                className="w-full px-4 py-3 rounded-xl text-left font-semibold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-200"
+              >
+                Profile
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </nav>
