@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { ServiceId, FormState } from '../types';
 import { ALL_SERVICES } from '../constants';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../src/firebase/useAuth';
-import { submitServiceRequest } from '../src/services/requestService';
+import { db } from '../src/firebase/firebase';
 import { sendServiceRequestEmail } from '../src/services/emailService';
 
 interface RequestFormProps {
@@ -12,7 +13,7 @@ interface RequestFormProps {
 }
 
 const RequestForm: React.FC<RequestFormProps> = ({ initialService = '', onNavigate }) => {
-  const { currentUser, userProfile } = useAuth();
+  const { currentUser } = useAuth();
   
   const [formData, setFormData] = useState<FormState>({
     name: '',
@@ -50,31 +51,35 @@ const RequestForm: React.FC<RequestFormProps> = ({ initialService = '', onNaviga
     }
 
     try {
-      // Save to Firestore with userId, userEmail, and userName
-      const requestId = await submitServiceRequest(
-        currentUser.uid,
-        currentUser.email,
-        formData.name || currentUser.displayName || 'User',
-        formData.service,
-        formData.message,
-        formData.phoneNumber || undefined
-      );
+      const docRef = await addDoc(collection(db, 'serviceRequests'), {
+        serviceType: formData.service,
+        description: formData.message,
+        phoneNumber: formData.phoneNumber || null,
+        userName: formData.name || currentUser.displayName || 'User',
+        userEmail: currentUser.email,
+        userId: currentUser.uid,
+        status: 'Pending',
+        createdAt: serverTimestamp(),
+      });
 
       // Get service name for email
       const selectedService = ALL_SERVICES.find(s => s.id === formData.service);
       const serviceName = selectedService?.title || formData.service;
 
-      // Send email notification (non-blocking)
-      await sendServiceRequestEmail({
-        name: formData.name,
-        email: formData.contact,
-        phoneNumber: formData.phoneNumber || '',
-        service: serviceName,
-        message: formData.message,
-        date: new Date().toLocaleString(),
-      });
+      try {
+        await sendServiceRequestEmail({
+          name: formData.name,
+          email: formData.contact,
+          phoneNumber: formData.phoneNumber || '',
+          service: serviceName,
+          message: formData.message,
+          date: new Date().toLocaleString(),
+        });
+      } catch (emailErr) {
+        console.error('Error sending confirmation email:', emailErr);
+      }
 
-      console.log('Request submitted with ID:', requestId);
+      console.log('Request submitted with ID:', docRef.id);
       setIsSubmitted(true);
       
       // Reset form

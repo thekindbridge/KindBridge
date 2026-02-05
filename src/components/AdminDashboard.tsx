@@ -1,9 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '../firebase/useAuth';
-import { subscribeToAllRequests, updateRequestStatus, ServiceRequest } from '../services/requestService';
+﻿import React, { useEffect, useState } from 'react';
+import { collection, doc, onSnapshot, orderBy, query, updateDoc } from 'firebase/firestore';
+import { db } from '../firebase/firebase';
+import { formatRequestDate, getStatusColor } from '../utils/requestFormatting';
+
+interface ServiceRequest {
+  id: string;
+  userId?: string;
+  userEmail?: string;
+  userName?: string;
+  phoneNumber?: string | null;
+  serviceType?: string;
+  description?: string;
+  status?: string;
+  createdAt?: unknown;
+}
 
 const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
-  const { currentUser, isAdmin } = useAuth();
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -11,32 +23,35 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [filterStatus, setFilterStatus] = useState<string>('All');
 
   useEffect(() => {
-    if (!isAdmin) return;
-
     setLoading(true);
     setError(null);
 
-    try {
-      const unsubscribe = subscribeToAllRequests((fetchedRequests) => {
+    const q = query(collection(db, 'serviceRequests'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const fetchedRequests = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...(docSnap.data() as Omit<ServiceRequest, 'id'>),
+        }));
         setRequests(fetchedRequests);
         setLoading(false);
-      });
+      },
+      (err) => {
+        console.error('Error fetching requests:', err);
+        setError('Failed to load requests. Please try again.');
+        setLoading(false);
+      }
+    );
 
-      return unsubscribe;
-    } catch (err) {
-      console.error('Error fetching requests:', err);
-      setError('Failed to load requests. Please try again.');
-      setLoading(false);
-    }
-  }, [isAdmin]);
+    return unsubscribe;
+  }, []);
 
   const handleStatusChange = async (requestId: string, newStatus: string) => {
     setUpdating(requestId);
     try {
-      await updateRequestStatus(
-        requestId,
-        newStatus as 'Pending' | 'In Progress' | 'Completed' | 'Rejected'
-      );
+      const requestRef = doc(db, 'serviceRequests', requestId);
+      await updateDoc(requestRef, { status: newStatus });
     } catch (err) {
       console.error('Error updating status:', err);
       alert('Failed to update status. Please try again.');
@@ -45,80 +60,18 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     }
   };
 
-  const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'Pending':
-        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 border-yellow-300 dark:border-yellow-700';
-      case 'In Progress':
-        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 border-blue-300 dark:border-blue-700';
-      case 'Completed':
-        return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border-green-300 dark:border-green-700';
-      case 'Rejected':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 border-red-300 dark:border-red-700';
-      default:
-        return 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-400 border-slate-300 dark:border-slate-700';
-    }
-  };
-
-  const formatDate = (timestamp: any) => {
-    if (!timestamp) return 'N/A';
-    const date = new Date(timestamp.seconds * 1000);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
   const filteredRequests = filterStatus === 'All'
     ? requests
-    : requests.filter(req => req.status === filterStatus);
+    : requests.filter(req => (req.status || 'Pending') === filterStatus);
 
   const stats = {
     total: requests.length,
-    pending: requests.filter(r => r.status === 'Pending').length,
+    pending: requests.filter(r => (r.status || 'Pending') === 'Pending').length,
     inProgress: requests.filter(r => r.status === 'In Progress').length,
     completed: requests.filter(r => r.status === 'Completed').length,
     rejected: requests.filter(r => r.status === 'Rejected').length,
+    cancelled: requests.filter(r => r.status === 'Cancelled').length,
   };
-
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pt-32 pb-20 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg
-              className="w-8 h-8"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4v2m0 4v2M6.343 3.665c.886-.887 2.318-.887 3.203 0l.001.001c.884.888.884 2.319 0 3.203L9.343 9.11a2.848 2.848 0 010 4.03l.204.205c.884.888.884 2.319 0 3.203l-.001.001c-.885.887-2.317.887-3.203 0L3.414 10.586a2.848 2.848 0 010-4.03l2.929-2.891zm11.314 0c.886-.887 2.318-.887 3.203 0l.001.001c.884.888.884 2.319 0 3.203L20.657 9.11a2.848 2.848 0 010 4.03l.204.205c.884.888.884 2.319 0 3.203l-.001.001c-.885.887-2.317.887-3.203 0l-2.929-2.891a2.848 2.848 0 010-4.03l2.929-2.891z"
-              />
-            </svg>
-          </div>
-          <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-            Access Denied
-          </h3>
-          <p className="text-slate-600 dark:text-slate-400 mb-6">
-            You don't have permission to access the admin dashboard.
-          </p>
-          <button
-            onClick={onBack}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-          >
-            Go Back
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pt-32 pb-20">
@@ -150,7 +103,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
         {/* Stats Cards */}
         {!loading && (
-          <div className="grid gap-4 md:grid-cols-5 mb-8">
+          <div className="grid gap-4 md:grid-cols-6 mb-8">
             <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
               <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">Total</p>
               <p className="text-3xl font-bold text-slate-900 dark:text-white">{stats.total}</p>
@@ -171,12 +124,16 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               <p className="text-red-700 dark:text-red-400 text-sm font-medium">Rejected</p>
               <p className="text-3xl font-bold text-red-800 dark:text-red-300">{stats.rejected}</p>
             </div>
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
+              <p className="text-slate-700 dark:text-slate-300 text-sm font-medium">Cancelled</p>
+              <p className="text-3xl font-bold text-slate-900 dark:text-white">{stats.cancelled}</p>
+            </div>
           </div>
         )}
 
         {/* Filter Buttons */}
         <div className="flex gap-2 mb-6 flex-wrap">
-          {['All', 'Pending', 'In Progress', 'Completed', 'Rejected'].map((status) => (
+          {['All', 'Pending', 'In Progress', 'Completed', 'Rejected', 'Cancelled'].map((status) => (
             <button
               key={status}
               onClick={() => setFilterStatus(status)}
@@ -237,36 +194,37 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                       <td className="px-6 py-4">
                         <div>
                           <p className="font-medium text-slate-900 dark:text-white">
-                            {request.userName}
+                            {request.userName || 'Unknown User'}
                           </p>
                           <p className="text-sm text-slate-600 dark:text-slate-400">
-                            {request.userEmail}
+                            {request.userEmail || 'No email'}
                           </p>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-slate-900 dark:text-white font-medium">
-                        {request.serviceType}
+                        {request.serviceType || 'Unknown Service'}
                       </td>
                       <td className="px-6 py-4 text-slate-600 dark:text-slate-400 max-w-xs truncate">
-                        {request.description}
+                        {request.description || 'No description'}
                       </td>
                       <td className="px-6 py-4">
                         <select
-                          value={request.status}
+                          value={request.status || 'Pending'}
                           onChange={(e) => handleStatusChange(request.id, e.target.value)}
                           disabled={updating === request.id}
                           className={`px-3 py-1 rounded-full text-sm font-medium border cursor-pointer transition-opacity ${getStatusColor(
-                            request.status
+                            request.status || 'Pending'
                           )} ${updating === request.id ? 'opacity-50 cursor-not-allowed' : ''} dark:bg-slate-700`}
                         >
                           <option value="Pending">Pending</option>
                           <option value="In Progress">In Progress</option>
                           <option value="Completed">Completed</option>
                           <option value="Rejected">Rejected</option>
+                          <option value="Cancelled">Cancelled</option>
                         </select>
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
-                        {formatDate(request.createdAt)}
+                        {formatRequestDate(request.createdAt)}
                       </td>
                     </tr>
                   ))}

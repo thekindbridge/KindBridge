@@ -1,17 +1,6 @@
-import {
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  where,
-  updateDoc,
-  doc,
-  onSnapshot,
-  serverTimestamp,
-  Timestamp,
-  QueryConstraint,
-} from 'firebase/firestore';
-import { db } from '../firebase/firebase';
+﻿const STORAGE_KEY = 'requests';
+
+type RequestStatus = 'Pending' | 'In Progress' | 'Completed' | 'Rejected' | 'Cancelled';
 
 export interface ServiceRequest {
   id: string;
@@ -21,11 +10,61 @@ export interface ServiceRequest {
   phoneNumber?: string;
   serviceType: string;
   description: string;
-  status: 'Pending' | 'In Progress' | 'Completed' | 'Rejected';
-  createdAt: Timestamp;
+  status: RequestStatus;
+  createdAt: number;
+  cancelledBy?: string;
+  cancelledAt?: number;
 }
 
-export type ServiceRequestInput = Omit<ServiceRequest, 'id' | 'createdAt'>;
+const isBrowser = typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+
+const readRequests = (): ServiceRequest[] => {
+  if (!isBrowser) return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error('Failed to parse requests from storage:', error);
+    return [];
+  }
+};
+
+const sortRequests = (requests: ServiceRequest[]): ServiceRequest[] => {
+  return [...requests].sort((a, b) => b.createdAt - a.createdAt);
+};
+
+const subscribers = new Set<(requests: ServiceRequest[]) => void>();
+let storageListenerAttached = false;
+
+const notifySubscribers = () => {
+  const requests = sortRequests(readRequests());
+  subscribers.forEach((callback) => callback(requests));
+};
+
+const ensureStorageListener = () => {
+  if (!isBrowser || storageListenerAttached) return;
+  window.addEventListener('storage', (event) => {
+    if (event.key === STORAGE_KEY) {
+      notifySubscribers();
+    }
+  });
+  storageListenerAttached = true;
+};
+
+const writeRequests = (requests: ServiceRequest[]) => {
+  if (!isBrowser) return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
+  notifySubscribers();
+};
+
+const generateId = (): string => {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+  return `req_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+};
 
 /**
  * Submit a new service request
@@ -38,60 +77,37 @@ export const submitServiceRequest = async (
   description: string,
   phoneNumber?: string
 ): Promise<string> => {
-  try {
-    const docRef = await addDoc(collection(db, 'serviceRequests'), {
-      userId,
-      userEmail,
-      userName,
-      phoneNumber: phoneNumber || null,
-      serviceType,
-      description,
-      status: 'Pending',
-      createdAt: serverTimestamp(),
-    });
-    return docRef.id;
-  } catch (error) {
-    console.error('Error submitting service request:', error);
-    throw error;
-  }
+  const requestId = generateId();
+  const newRequest: ServiceRequest = {
+    id: requestId,
+    userId,
+    userEmail,
+    userName,
+    phoneNumber: phoneNumber || undefined,
+    serviceType,
+    description,
+    status: 'Pending',
+    createdAt: Date.now(),
+  };
+
+  const updatedRequests = [newRequest, ...readRequests()];
+  writeRequests(updatedRequests);
+
+  return requestId;
 };
 
 /**
  * Get all service requests for a specific user
  */
 export const getUserRequests = async (userId: string): Promise<ServiceRequest[]> => {
-  try {
-    const q = query(
-      collection(db, 'serviceRequests'),
-      where('userId', '==', userId)
-    );
-    const querySnapshot = await getDocs(q);
-    const requests = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    } as ServiceRequest));
-    return requests.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
-  } catch (error) {
-    console.error('Error fetching user requests:', error);
-    throw error;
-  }
+  return sortRequests(readRequests().filter((request) => request.userId === userId));
 };
 
 /**
  * Get all service requests (Admin only)
  */
 export const getAllRequests = async (): Promise<ServiceRequest[]> => {
-  try {
-    const querySnapshot = await getDocs(collection(db, 'serviceRequests'));
-    const requests = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    } as ServiceRequest));
-    return requests.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
-  } catch (error) {
-    console.error('Error fetching all requests:', error);
-    throw error;
-  }
+  return sortRequests(readRequests());
 };
 
 /**
@@ -99,15 +115,48 @@ export const getAllRequests = async (): Promise<ServiceRequest[]> => {
  */
 export const updateRequestStatus = async (
   requestId: string,
-  status: 'Pending' | 'In Progress' | 'Completed' | 'Rejected'
+  status: RequestStatus
 ): Promise<void> => {
-  try {
-    const requestRef = doc(db, 'serviceRequests', requestId);
-    await updateDoc(requestRef, { status });
-  } catch (error) {
-    console.error('Error updating request status:', error);
-    throw error;
-  }
+  const requests = readRequests();
+  const updatedRequests = requests.map((request) => {
+    if (request.id !== requestId) return request;
+    if (status === 'Cancelled') {
+      return {
+        ...request,
+        status,
+        cancelledAt: request.cancelledAt || Date.now(),
+        cancelledBy: request.cancelledBy || 'admin',
+      };
+    }
+    const { cancelledAt, cancelledBy, ...rest } = request;
+    return {
+      ...rest,
+      status,
+    };
+  });
+
+  writeRequests(updatedRequests);
+};
+
+/**
+ * Cancel a request from the user side
+ */
+export const cancelRequest = async (
+  requestId: string,
+  cancelledBy: string
+): Promise<void> => {
+  const requests = readRequests();
+  const updatedRequests = requests.map((request) => {
+    if (request.id !== requestId) return request;
+    return {
+      ...request,
+      status: 'Cancelled',
+      cancelledBy,
+      cancelledAt: Date.now(),
+    };
+  });
+
+  writeRequests(updatedRequests);
 };
 
 /**
@@ -117,25 +166,18 @@ export const subscribeToUserRequests = (
   userId: string,
   callback: (requests: ServiceRequest[]) => void
 ): (() => void) => {
-  try {
-    const q = query(
-      collection(db, 'serviceRequests'),
-      where('userId', '==', userId)
-    );
-    
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const requests = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      } as ServiceRequest));
-      callback(requests.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis()));
-    });
+  ensureStorageListener();
 
-    return unsubscribe;
-  } catch (error) {
-    console.error('Error subscribing to user requests:', error);
-    throw error;
-  }
+  const handler = (requests: ServiceRequest[]) => {
+    callback(requests.filter((request) => request.userId === userId));
+  };
+
+  subscribers.add(handler);
+  handler(sortRequests(readRequests()));
+
+  return () => {
+    subscribers.delete(handler);
+  };
 };
 
 /**
@@ -144,18 +186,16 @@ export const subscribeToUserRequests = (
 export const subscribeToAllRequests = (
   callback: (requests: ServiceRequest[]) => void
 ): (() => void) => {
-  try {
-    const unsubscribe = onSnapshot(collection(db, 'serviceRequests'), (querySnapshot) => {
-      const requests = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      } as ServiceRequest));
-      callback(requests.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis()));
-    });
+  ensureStorageListener();
 
-    return unsubscribe;
-  } catch (error) {
-    console.error('Error subscribing to all requests:', error);
-    throw error;
-  }
+  const handler = (requests: ServiceRequest[]) => {
+    callback(requests);
+  };
+
+  subscribers.add(handler);
+  handler(sortRequests(readRequests()));
+
+  return () => {
+    subscribers.delete(handler);
+  };
 };
