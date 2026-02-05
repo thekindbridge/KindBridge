@@ -35,13 +35,25 @@ service cloud.firestore {
         request.resource.data.userId == getUserUid() &&
         request.resource.data.status == 'Pending';
 
-      // Only admin can update status
-      allow update: if isAuth() && isAdmin(getUserEmail()) &&
-        request.resource.data.userId == resource.data.userId &&
-        request.resource.data.userEmail == resource.data.userEmail &&
-        request.resource.data.userName == resource.data.userName &&
-        request.resource.data.serviceType == resource.data.serviceType &&
-        request.resource.data.description == resource.data.description;
+      // Admin can update status; users can only cancel their own requests
+      allow update: if isAuth() && (
+        (
+          isAdmin(getUserEmail()) &&
+          request.resource.data.userId == resource.data.userId &&
+          request.resource.data.userEmail == resource.data.userEmail &&
+          request.resource.data.userName == resource.data.userName &&
+          request.resource.data.serviceType == resource.data.serviceType &&
+          request.resource.data.description == resource.data.description
+        ) ||
+        (
+          request.resource.data.userId == getUserUid() &&
+          request.resource.data.userEmail == resource.data.userEmail &&
+          request.resource.data.userName == resource.data.userName &&
+          request.resource.data.serviceType == resource.data.serviceType &&
+          request.resource.data.description == resource.data.description &&
+          request.resource.data.status == 'Cancelled'
+        )
+      );
 
       // Only admin can delete
       allow delete: if isAuth() && isAdmin(getUserEmail());

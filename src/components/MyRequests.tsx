@@ -11,15 +11,23 @@ const MyRequests: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [cancelingId, setCancelingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     setError(null);
 
     try {
+      const timer = setTimeout(() => {
+        setLoading(false);
+      }, 3000);
+
       const unsubscribe = subscribeToUserRequests(currentUser.uid, (fetchedRequests) => {
         setRequests(fetchedRequests);
         setLoading(false);
+        clearTimeout(timer);
       });
 
       return unsubscribe;
@@ -35,6 +43,11 @@ const MyRequests: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     setCancelingId(requestId);
     try {
       await cancelRequest(requestId, currentUser.uid);
+      setRequests((prev) =>
+        prev.map((request) =>
+          request.id === requestId ? { ...request, status: 'Cancelled' } : request
+        )
+      );
     } catch (err) {
       console.error('Error cancelling request:', err);
       setError('Failed to cancel request. Please try again.');

@@ -16,7 +16,7 @@ import { PROJECT_SERVICES, SERVICE_DETAILS, SMALL_SERVICES, VALUES } from './con
 import { ServiceId } from './types';
 
 const AppContent: React.FC<{ theme: 'light' | 'dark'; toggleTheme: () => void }> = ({ theme, toggleTheme }) => {
-  const { currentUser, loading, showProfileModal, setShowProfileModal, userProfile, refreshProfile } = useAuth();
+  const { currentUser, loading, showProfileModal, setShowProfileModal, userProfile, refreshProfile, isAdmin } = useAuth();
   const [selectedService, setSelectedService] = useState<ServiceId | ''>('');
   const [detailsServiceId, setDetailsServiceId] = useState<ServiceId | null>(null);
   const [currentPage, setCurrentPage] = useState<'home' | 'my-requests' | 'admin-dashboard'>('home');
@@ -42,6 +42,12 @@ const AppContent: React.FC<{ theme: 'light' | 'dark'; toggleTheme: () => void }>
     setCurrentPage(page as 'home' | 'my-requests' | 'admin-dashboard');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  useEffect(() => {
+    if (currentPage === 'admin-dashboard' && !isAdmin) {
+      setCurrentPage('home');
+    }
+  }, [currentPage, isAdmin]);
 
   if (loading) {
     return (
