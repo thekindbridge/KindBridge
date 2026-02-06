@@ -1,74 +1,42 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Admin email constant
-    function isAdmin(email) {
-      return email == 'thekindbridge@gmail.com';
-    }
-
-    // Check if user is authenticated
-    function isAuth() {
+    function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Get user email
-    function getUserEmail() {
-      return request.auth.token.email;
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.email == "thekindbridge@gmail.com";
     }
 
-    // Get user UID
-    function getUserUid() {
-      return request.auth.uid;
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      allow read: if isAdmin();
     }
 
-    // Rules for serviceRequests collection
-    match /serviceRequests/{requestId} {
-      function isAdminStatus(status) {
-        return status in ['pending', 'in_progress', 'completed', 'rejected'];
-      }
+    match /requests/{requestId} {
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid;
 
-      // Allow authenticated users to read only their own requests
-      allow read: if isAuth() && (
-        resource.data.userId == getUserUid() || 
-        isAdmin(getUserEmail())
-      );
+      allow read: if isAuthenticated()
+        && resource.data.userId == request.auth.uid;
 
-      // Allow creating a new request (write own document)
-      allow create: if isAuth() && 
-        request.resource.data.id == requestId &&
-        request.resource.data.userId == getUserUid() &&
-        request.resource.data.status == 'submitted';
+      allow update: if isAuthenticated()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.name == resource.data.name
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.phoneNumber == resource.data.phoneNumber
+        && request.resource.data.service == resource.data.service
+        && request.resource.data.message == resource.data.message
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.status == "Cancelled";
 
-      // Admin can update status; users can only cancel their own requests
-      allow update: if isAuth() && (
-        (
-          isAdmin(getUserEmail()) &&
-          request.resource.data.id == resource.data.id &&
-          request.resource.data.userId == resource.data.userId &&
-          request.resource.data.formData == resource.data.formData &&
-          request.resource.data.createdAt == resource.data.createdAt &&
-          resource.data.status != 'cancelled' &&
-          isAdminStatus(request.resource.data.status)
-        ) ||
-        (
-          request.resource.data.id == resource.data.id &&
-          request.resource.data.userId == getUserUid() &&
-          request.resource.data.formData == resource.data.formData &&
-          request.resource.data.createdAt == resource.data.createdAt &&
-          resource.data.status == 'submitted' &&
-          request.resource.data.status == 'cancelled'
-        )
-      );
-
-      // Only admin can delete
-      allow delete: if isAuth() && isAdmin(getUserEmail());
+      allow read, update: if isAdmin();
     }
 
-    // Rules for userProfiles collection
-    match /userProfiles/{userId} {
-      // Users can read and write their own profile
-      allow read, write: if isAuth() && userId == getUserUid();
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

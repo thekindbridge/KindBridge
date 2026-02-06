@@ -1,45 +1,51 @@
 
-import React from 'react';
-
-export type ServiceId = 
-  | 'full_stack' 
-  | 'ai_ml' 
-  | 'automation' 
-  | 'data_analytics' 
-  | 'academic_projects'
-  | 'debugging' 
-  | 'mini_projects' 
-  | 'resume_support' 
-  | 'system_design' 
-  | 'simplification';
-
 export interface Service {
-  id: ServiceId;
+  id: string;
   title: string;
   description: string;
-  imageUrl: string;
-}
-
-export interface ServiceDetail {
-  title: string;
-  shortDescription: string;
-  fullDescription: string;
-  features: string[];
-  technologies: string[];
-  idealFor: string;
-  deliveryTime: string;
+  longDescription: string;
+  iconName: 'Globe' | 'Cpu' | 'Users' | 'Shield' | 'Zap' | 'Heart';
 }
 
 export interface ValuePoint {
   title: string;
   description: string;
-  icon: React.ReactNode;
+  iconName: 'ShieldCheck' | 'Sparkles' | 'Handshake';
 }
 
-export interface FormState {
+export interface AppUserData {
+  uid: string;
   name: string;
-  contact: string;
-  phoneNumber: string;
-  service: ServiceId | '';
+  email: string;
+  mobile?: string | null;
+  education: string;
+  college?: string | null;
+  createdAt?: unknown;
+  role: 'user' | 'admin';
+  onboarded?: boolean;
+}
+
+export type RequestStatus =
+  | 'Submitted'
+  | 'In process'
+  | 'Completed'
+  | 'Rejected'
+  | "We'll contact"
+  | 'Cancelled'
+  | (string & {});
+
+export interface ServiceRequestInput {
+  userId: string;
+  name: string;
+  email: string;
+  phoneNumber?: string | null;
+  service: string;
   message: string;
+}
+
+export interface ServiceRequest extends ServiceRequestInput {
+  id: string;
+  status: RequestStatus;
+  createdAt?: unknown;
+  updatedAt?: unknown;
 }
