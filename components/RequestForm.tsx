@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ServiceId, FormState } from '../types';
 import { ALL_SERVICES } from '../constants';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { useAuth } from '../src/firebase/useAuth';
 import { db } from '../src/firebase/firebase';
 import { sendServiceRequestEmail } from '../src/services/emailService';
@@ -51,14 +51,12 @@ const RequestForm: React.FC<RequestFormProps> = ({ initialService = '', onNaviga
     }
 
     try {
-      const docRef = await addDoc(collection(db, 'serviceRequests'), {
-        serviceType: formData.service,
-        description: formData.message,
-        phoneNumber: formData.phoneNumber || null,
-        userName: formData.name || currentUser.displayName || 'User',
-        userEmail: currentUser.email,
+      const requestRef = doc(collection(db, 'serviceRequests'));
+      await setDoc(requestRef, {
+        id: requestRef.id,
         userId: currentUser.uid,
-        status: 'Pending',
+        formData,
+        status: 'submitted',
         createdAt: serverTimestamp(),
       });
 
@@ -79,17 +77,8 @@ const RequestForm: React.FC<RequestFormProps> = ({ initialService = '', onNaviga
         console.error('Error sending confirmation email:', emailErr);
       }
 
-      console.log('Request submitted with ID:', docRef.id);
+      console.log('Request submitted with ID:', requestRef.id);
       setIsSubmitted(true);
-      
-      // Reset form
-      setFormData({
-        name: '',
-        contact: '',
-        phoneNumber: '',
-        service: '',
-        message: '',
-      });
     } catch (err) {
       console.error('Error submitting form:', err);
       setError('Failed to submit form. Please try again.');
@@ -134,30 +123,21 @@ const RequestForm: React.FC<RequestFormProps> = ({ initialService = '', onNaviga
       )}
       {isSubmitted ? (
         <div className="text-center py-12 animate-fade-in">
-          <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h3 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Request Submitted!</h3>
-          <p className="text-slate-600 dark:text-slate-400 mb-4">We will get back to you within 24 hours.</p>
-          <p className="text-sm text-slate-500 dark:text-slate-500">
-            You can track your request status in the <strong>My Requests</strong> section.
-          </p>
+          <h3 className="text-3xl font-bold text-slate-900 dark:text-white">Request submitted</h3>
           <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
             <button
               type="button"
               onClick={handleRequestAnother}
               className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors duration-300 shadow-md shadow-blue-200 dark:shadow-blue-900/20 active:scale-[0.98]"
             >
-              Request Another Service
+              Request Another Form
             </button>
             <button
               type="button"
               onClick={handleGoToMyRequests}
               className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-semibold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-300"
             >
-              My Requests
+              My Request
             </button>
           </div>
         </div>

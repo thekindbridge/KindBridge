@@ -24,6 +24,10 @@ service cloud.firestore {
 
     // Rules for serviceRequests collection
     match /serviceRequests/{requestId} {
+      function isAdminStatus(status) {
+        return status in ['pending', 'in_progress', 'completed', 'rejected'];
+      }
+
       // Allow authenticated users to read only their own requests
       allow read: if isAuth() && (
         resource.data.userId == getUserUid() || 
@@ -32,26 +36,28 @@ service cloud.firestore {
 
       // Allow creating a new request (write own document)
       allow create: if isAuth() && 
+        request.resource.data.id == requestId &&
         request.resource.data.userId == getUserUid() &&
-        request.resource.data.status == 'Pending';
+        request.resource.data.status == 'submitted';
 
       // Admin can update status; users can only cancel their own requests
       allow update: if isAuth() && (
         (
           isAdmin(getUserEmail()) &&
+          request.resource.data.id == resource.data.id &&
           request.resource.data.userId == resource.data.userId &&
-          request.resource.data.userEmail == resource.data.userEmail &&
-          request.resource.data.userName == resource.data.userName &&
-          request.resource.data.serviceType == resource.data.serviceType &&
-          request.resource.data.description == resource.data.description
+          request.resource.data.formData == resource.data.formData &&
+          request.resource.data.createdAt == resource.data.createdAt &&
+          resource.data.status != 'cancelled' &&
+          isAdminStatus(request.resource.data.status)
         ) ||
         (
+          request.resource.data.id == resource.data.id &&
           request.resource.data.userId == getUserUid() &&
-          request.resource.data.userEmail == resource.data.userEmail &&
-          request.resource.data.userName == resource.data.userName &&
-          request.resource.data.serviceType == resource.data.serviceType &&
-          request.resource.data.description == resource.data.description &&
-          request.resource.data.status == 'Cancelled'
+          request.resource.data.formData == resource.data.formData &&
+          request.resource.data.createdAt == resource.data.createdAt &&
+          resource.data.status == 'submitted' &&
+          request.resource.data.status == 'cancelled'
         )
       );
 

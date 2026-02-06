@@ -1,16 +1,13 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { collection, doc, onSnapshot, orderBy, query, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
-import { formatRequestDate, getStatusColor } from '../utils/requestFormatting';
+import { formatRequestDate, getStatusColor, getStatusDotColor } from '../utils/requestFormatting';
+import type { FormState } from '../../types';
 
 interface ServiceRequest {
   id: string;
   userId?: string;
-  userEmail?: string;
-  userName?: string;
-  phoneNumber?: string | null;
-  serviceType?: string;
-  description?: string;
+  formData?: FormState;
   status?: string;
   createdAt?: unknown;
 }
@@ -19,8 +16,8 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [updating, setUpdating] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('All');
+  const [updating, setUpdating] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -47,6 +44,20 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     return unsubscribe;
   }, []);
 
+  const filteredRequests = filterStatus === 'All'
+    ? requests
+    : requests.filter(req => (req.status || 'submitted') === filterStatus);
+
+  const stats = {
+    total: requests.length,
+    submitted: requests.filter(r => (r.status || 'submitted') === 'submitted').length,
+    pending: requests.filter(r => r.status === 'pending').length,
+    inProgress: requests.filter(r => r.status === 'in_progress').length,
+    completed: requests.filter(r => r.status === 'completed').length,
+    rejected: requests.filter(r => r.status === 'rejected').length,
+    cancelled: requests.filter(r => r.status === 'cancelled').length,
+  };
+
   const handleStatusChange = async (requestId: string, newStatus: string) => {
     setUpdating(requestId);
     try {
@@ -60,19 +71,6 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     }
   };
 
-  const filteredRequests = filterStatus === 'All'
-    ? requests
-    : requests.filter(req => (req.status || 'Pending') === filterStatus);
-
-  const stats = {
-    total: requests.length,
-    pending: requests.filter(r => (r.status || 'Pending') === 'Pending').length,
-    inProgress: requests.filter(r => r.status === 'In Progress').length,
-    completed: requests.filter(r => r.status === 'Completed').length,
-    rejected: requests.filter(r => r.status === 'Rejected').length,
-    cancelled: requests.filter(r => r.status === 'Cancelled').length,
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pt-32 pb-20">
       <div className="container mx-auto px-6 max-w-7xl">
@@ -83,7 +81,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               Admin Dashboard
             </h1>
             <p className="text-slate-600 dark:text-slate-400">
-              Manage all service requests and update their status
+              View all service requests
             </p>
           </div>
           <button
@@ -103,10 +101,14 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
         {/* Stats Cards */}
         {!loading && (
-          <div className="grid gap-4 md:grid-cols-6 mb-8">
+          <div className="grid gap-4 md:grid-cols-7 mb-8">
             <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
               <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">Total</p>
               <p className="text-3xl font-bold text-slate-900 dark:text-white">{stats.total}</p>
+            </div>
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+              <p className="text-blue-700 dark:text-blue-400 text-sm font-medium">Submitted</p>
+              <p className="text-3xl font-bold text-blue-800 dark:text-blue-300">{stats.submitted}</p>
             </div>
             <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4 border border-yellow-200 dark:border-yellow-800">
               <p className="text-yellow-700 dark:text-yellow-400 text-sm font-medium">Pending</p>
@@ -133,7 +135,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
         {/* Filter Buttons */}
         <div className="flex gap-2 mb-6 flex-wrap">
-          {['All', 'Pending', 'In Progress', 'Completed', 'Rejected', 'Cancelled'].map((status) => (
+          {['All', 'submitted', 'pending', 'in_progress', 'completed', 'rejected', 'cancelled'].map((status) => (
             <button
               key={status}
               onClick={() => setFilterStatus(status)}
@@ -172,10 +174,7 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                       User
                     </th>
                     <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">
-                      Service Type
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">
-                      Description
+                      Request Details
                     </th>
                     <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">
                       Status
@@ -194,34 +193,50 @@ const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                       <td className="px-6 py-4">
                         <div>
                           <p className="font-medium text-slate-900 dark:text-white">
-                            {request.userName || 'Unknown User'}
+                            {request.formData?.name || 'Unknown User'}
                           </p>
                           <p className="text-sm text-slate-600 dark:text-slate-400">
-                            {request.userEmail || 'No email'}
+                            {request.formData?.contact || 'No contact'}
                           </p>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-slate-900 dark:text-white font-medium">
-                        {request.serviceType || 'Unknown Service'}
-                      </td>
-                      <td className="px-6 py-4 text-slate-600 dark:text-slate-400 max-w-xs truncate">
-                        {request.description || 'No description'}
+                      <td className="px-6 py-4 text-slate-600 dark:text-slate-400 max-w-xs">
+                        <p className="font-medium text-slate-900 dark:text-white">
+                          {request.formData?.service || 'Service'}
+                        </p>
+                        <p className="truncate">{request.formData?.message || 'No description'}</p>
+                        <p className="text-xs mt-1">Phone: {request.formData?.phoneNumber || 'N/A'}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <select
-                          value={request.status || 'Pending'}
-                          onChange={(e) => handleStatusChange(request.id, e.target.value)}
-                          disabled={updating === request.id}
-                          className={`px-3 py-1 rounded-full text-sm font-medium border cursor-pointer transition-opacity ${getStatusColor(
-                            request.status || 'Pending'
-                          )} ${updating === request.id ? 'opacity-50 cursor-not-allowed' : ''} dark:bg-slate-700`}
-                        >
-                          <option value="Pending">Pending</option>
-                          <option value="In Progress">In Progress</option>
-                          <option value="Completed">Completed</option>
-                          <option value="Rejected">Rejected</option>
-                          <option value="Cancelled">Cancelled</option>
-                        </select>
+                        {request.status === 'cancelled' ? (
+                          <span
+                            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold border ${getStatusColor(
+                              'cancelled'
+                            )}`}
+                          >
+                            <span className={`w-2 h-2 rounded-full ${getStatusDotColor('cancelled')}`}></span>
+                            cancelled
+                          </span>
+                        ) : (
+                          <select
+                            value={request.status || 'submitted'}
+                            onChange={(e) => handleStatusChange(request.id, e.target.value)}
+                            disabled={updating === request.id}
+                            className={`px-3 py-1 rounded-full text-sm font-medium border cursor-pointer transition-opacity ${getStatusColor(
+                              request.status || 'submitted'
+                            )} ${updating === request.id ? 'opacity-50 cursor-not-allowed' : ''} dark:bg-slate-700`}
+                          >
+                            {request.status === 'submitted' && (
+                              <option value="submitted" disabled>
+                                submitted
+                              </option>
+                            )}
+                            <option value="pending">pending</option>
+                            <option value="in_progress">in_progress</option>
+                            <option value="completed">completed</option>
+                            <option value="rejected">rejected</option>
+                          </select>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
                         {formatRequestDate(request.createdAt)}

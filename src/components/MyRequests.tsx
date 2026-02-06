@@ -9,28 +9,41 @@ const MyRequests: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
+  const [hasSnapshot, setHasSnapshot] = useState(false);
 
   useEffect(() => {
     if (!currentUser) {
+      setRequests([]);
       setLoading(false);
+      setHasSnapshot(false);
+      setError(null);
       return;
     }
 
     setLoading(true);
     setError(null);
+    setHasSnapshot(false);
 
     try {
-      const timer = setTimeout(() => {
-        setLoading(false);
-      }, 3000);
+      const unsubscribe = subscribeToUserRequests(
+        currentUser.uid,
+        (fetchedRequests) => {
+          setRequests(fetchedRequests);
+          setLoading(false);
+          setHasSnapshot(true);
+          setError(null);
+        },
+        (err) => {
+          console.error('Error fetching requests:', err);
+          setError('Failed to load your requests. Please try again.');
+          setLoading(false);
+          setHasSnapshot(false);
+        }
+      );
 
-      const unsubscribe = subscribeToUserRequests(currentUser.uid, (fetchedRequests) => {
-        setRequests(fetchedRequests);
-        setLoading(false);
-        clearTimeout(timer);
-      });
-
-      return unsubscribe;
+      return () => {
+        unsubscribe();
+      };
     } catch (err) {
       console.error('Error fetching requests:', err);
       setError('Failed to load your requests. Please try again.');
@@ -42,12 +55,7 @@ const MyRequests: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     if (!currentUser) return;
     setCancelingId(requestId);
     try {
-      await cancelRequest(requestId, currentUser.uid);
-      setRequests((prev) =>
-        prev.map((request) =>
-          request.id === requestId ? { ...request, status: 'Cancelled' } : request
-        )
-      );
+      await cancelRequest(requestId);
     } catch (err) {
       console.error('Error cancelling request:', err);
       setError('Failed to cancel request. Please try again.');
@@ -56,8 +64,8 @@ const MyRequests: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     }
   };
 
-  const canCancel = (status: string) => {
-    return !['Cancelled', 'Completed', 'Rejected'].includes(status);
+  const canCancel = (status?: string) => {
+    return status === 'submitted';
   };
 
   return (
@@ -94,7 +102,9 @@ const MyRequests: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
             <p className="text-slate-600 dark:text-slate-400">Loading your requests...</p>
           </div>
-        ) : requests.length === 0 ? (
+        ) : error ? (
+          <></>
+        ) : hasSnapshot && requests.length === 0 ? (
           /* Empty State */
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-700">
             <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -141,7 +151,7 @@ const MyRequests: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     )}`}
                   >
                     <span className={`w-2 h-2 rounded-full ${getStatusDotColor(request.status)}`}></span>
-                    {request.status}
+                    {request.status || 'submitted'}
                   </span>
                   <span className="text-xs text-slate-500 dark:text-slate-400">
                     {formatRequestDate(request.createdAt)}
@@ -150,13 +160,19 @@ const MyRequests: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
                 {/* Service Type */}
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                  {request.serviceType}
+                  {request.formData?.service || 'Service'}
                 </h3>
 
                 {/* Description */}
                 <p className="text-slate-600 dark:text-slate-400 text-sm mb-4 line-clamp-3">
-                  {request.description}
+                  {request.formData?.message || 'No details provided.'}
                 </p>
+
+                <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1 mb-4">
+                  <p>Name: {request.formData?.name || 'N/A'}</p>
+                  <p>Contact: {request.formData?.contact || 'N/A'}</p>
+                  <p>Phone: {request.formData?.phoneNumber || 'N/A'}</p>
+                </div>
 
                 {canCancel(request.status) && (
                   <button

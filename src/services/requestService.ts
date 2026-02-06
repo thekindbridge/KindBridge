@@ -4,27 +4,27 @@ import {
   onSnapshot,
   orderBy,
   query,
-  serverTimestamp,
   updateDoc,
   where,
 } from 'firebase/firestore';
 import type { QuerySnapshot } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
+import type { FormState } from '../../types';
 
-type RequestStatus = 'Pending' | 'In Progress' | 'Completed' | 'Rejected' | 'Cancelled';
+type RequestStatus =
+  | 'submitted'
+  | 'cancelled'
+  | 'pending'
+  | 'in_progress'
+  | 'completed'
+  | 'rejected';
 
 export interface ServiceRequest {
   id: string;
   userId?: string;
-  userEmail?: string;
-  userName?: string;
-  phoneNumber?: string | null;
-  serviceType?: string;
-  description?: string;
+  formData?: FormState;
   status?: RequestStatus;
   createdAt?: unknown;
-  cancelledBy?: string;
-  cancelledAt?: unknown;
 }
 
 const mapSnapshot = (snapshot: QuerySnapshot): ServiceRequest[] => {
@@ -38,14 +38,11 @@ const mapSnapshot = (snapshot: QuerySnapshot): ServiceRequest[] => {
  * Cancel a request from the user side
  */
 export const cancelRequest = async (
-  requestId: string,
-  cancelledBy: string
+  requestId: string
 ): Promise<void> => {
   const requestRef = doc(db, 'serviceRequests', requestId);
   await updateDoc(requestRef, {
-    status: 'Cancelled',
-    cancelledBy,
-    cancelledAt: serverTimestamp(),
+    status: 'cancelled',
   });
 };
 
@@ -54,7 +51,8 @@ export const cancelRequest = async (
  */
 export const subscribeToUserRequests = (
   userId: string,
-  callback: (requests: ServiceRequest[]) => void
+  callback: (requests: ServiceRequest[]) => void,
+  onError?: (error: Error) => void
 ): (() => void) => {
   const q = query(
     collection(db, 'serviceRequests'),
@@ -62,9 +60,17 @@ export const subscribeToUserRequests = (
     orderBy('createdAt', 'desc')
   );
 
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    callback(mapSnapshot(snapshot));
-  });
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      callback(mapSnapshot(snapshot));
+    },
+    (error) => {
+      if (onError) {
+        onError(error);
+      }
+    }
+  );
 
   return unsubscribe;
 };
