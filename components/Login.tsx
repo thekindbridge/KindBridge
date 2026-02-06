@@ -27,7 +27,7 @@ const Login: React.FC<LoginProps> = ({ isDark }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen w-full max-w-full flex items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full dark:opacity-100 opacity-50" />
       <div className="absolute bottom-[-5%] right-[-5%] w-[35%] h-[35%] bg-teal-500/10 blur-[120px] rounded-full dark:opacity-100 opacity-50" />
 

@@ -197,9 +197,9 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ isDark, toggleT
                   <div key={item.id} className={`rounded-2xl p-4 border ${isDark ? 'border-white/10 bg-slate-900/40' : 'border-slate-200 bg-white/70'}`}>
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
                       <div className="space-y-2">
-                        <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.service}</h3>
-                        <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{item.message}</p>
-                        <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>By {item.name} ({item.email})</p>
+                        <h3 className={`text-base font-bold break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.service}</h3>
+                        <p className={`text-sm break-words ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{item.message}</p>
+                        <p className={`text-xs break-all ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>By {item.name} ({item.email})</p>
                         <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Phone: {item.phoneNumber?.trim() ? item.phoneNumber : 'Not provided'}</p>
                         <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Created: {formatRequestDate(item.createdAt)}</p>
                       </div>

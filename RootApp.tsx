@@ -28,7 +28,7 @@ const RootApp: React.FC = () => {
   }, [isDark]);
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 ${isDark ? 'bg-slate-900 text-slate-200' : 'bg-slate-50 text-slate-900'}`}>
+    <div className={`min-h-screen w-full max-w-full overflow-x-hidden transition-colors duration-500 ${isDark ? 'bg-slate-900 text-slate-200' : 'bg-slate-50 text-slate-900'}`}>
       <div className="mesh-bg" />
       <div className="grid-pattern" />
 

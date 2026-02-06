@@ -5,9 +5,9 @@ import MotionWrapper from './MotionWrapper';
 
 const WhyChooseUs: React.FC = () => {
   return (
-    <section id="why-us" className="py-24">
+    <section id="why-us" className="py-24 w-full max-w-full overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className={`glass rounded-[3rem] p-12 md:p-20 border relative overflow-hidden transition-colors duration-300 dark:border-white/5 border-slate-200 dark:bg-slate-900/30 bg-white/50 shadow-sm`}>
+        <div className={`max-w-full glass rounded-[3rem] p-12 md:p-20 border relative overflow-hidden transition-colors duration-300 dark:border-white/5 border-slate-200 dark:bg-slate-900/30 bg-white/50 shadow-sm`}>
           <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 blur-[100px] rounded-full dark:opacity-100 opacity-30"></div>
           
           <div className="relative z-10 grid lg:grid-cols-5 gap-16 items-center">

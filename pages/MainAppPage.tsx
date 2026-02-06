@@ -16,7 +16,7 @@ const MainAppPage: React.FC<MainAppPageProps> = ({ isDark, toggleTheme }) => {
   return (
     <>
       <Navbar isDark={isDark} toggleTheme={toggleTheme} />
-      <main className="animate-in fade-in duration-700">
+      <main className="w-full max-w-full overflow-x-hidden animate-in fade-in duration-700">
         <Hero />
         <About />
         <Services />

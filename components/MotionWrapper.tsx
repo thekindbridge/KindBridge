@@ -45,7 +45,7 @@ const MotionWrapper: React.FC<MotionWrapperProps> = ({
     <div
       ref={ref}
       style={{ transitionDelay: `${delay}ms` }}
-      className={`opacity-0 transition-all duration-700 ease-out transform ${getInitialStyles()} ${className}`}
+      className={`max-w-full opacity-0 transition-all duration-700 ease-out transform ${getInitialStyles()} ${className}`}
     >
       {children}
     </div>

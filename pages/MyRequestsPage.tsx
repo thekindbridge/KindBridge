@@ -94,10 +94,10 @@ const MyRequestsPage: React.FC<MyRequestsPageProps> = ({ isDark, toggleTheme }) 
               {requests.map((item) => (
                 <div key={item.id} className={`glass rounded-2xl p-4 border ${isDark ? 'border-white/10 bg-slate-900/40' : 'border-slate-200 bg-white/80'}`}>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.service}</h3>
+                    <h3 className={`text-base font-bold break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.service}</h3>
                     <span className={`px-3 h-7 inline-flex items-center rounded-full text-xs font-bold ${statusClasses(item.status)}`}>{item.status}</span>
                   </div>
-                  <p className={`mt-3 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{item.message}</p>
+                  <p className={`mt-3 text-sm break-words ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{item.message}</p>
                   <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Created: {formatRequestDate(item.createdAt)}</p>
                     {item.status === 'Submitted' && (

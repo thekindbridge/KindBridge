@@ -6,12 +6,12 @@ import MotionWrapper from './MotionWrapper';
 
 const Hero: React.FC = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+    <section className="relative min-h-screen w-full max-w-full flex items-center justify-center overflow-hidden pt-20">
       {/* Background Decor */}
       <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full dark:opacity-100 opacity-50"></div>
       <div className="absolute bottom-[-5%] right-[-5%] w-[35%] h-[35%] bg-teal-500/10 blur-[120px] rounded-full dark:opacity-100 opacity-50"></div>
 
-      <div className="relative max-w-7xl mx-auto px-4 md:px-8 text-center z-10">
+      <div className="relative w-full max-w-7xl mx-auto px-4 md:px-8 text-center z-10">
         <MotionWrapper delay={100} className="mb-6">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass border text-xs md:text-sm font-medium dark:text-teal-300 text-teal-600 dark:border-white/10 border-slate-200">
             <Sparkles size={14} />
@@ -37,14 +37,14 @@ const Hero: React.FC = () => {
             href="#contact" 
             className="w-full sm:w-auto px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full font-bold transition-all shadow-xl shadow-indigo-600/20 flex items-center justify-center gap-2 group"
           >
-            Get Started 
+            Request Service
             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
           </a>
           <a 
             href="#services" 
             className="w-full sm:w-auto px-8 py-4 glass rounded-full font-bold transition-all border dark:text-white text-slate-700 dark:border-white/10 border-slate-200 hover:bg-slate-100 dark:hover:bg-white/10"
           >
-            Learn More
+            Explore Services
           </a>
         </MotionWrapper>
         

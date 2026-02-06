@@ -20,7 +20,7 @@ const Footer: React.FC = () => {
           </div>
 
           <div className="flex flex-col items-center md:items-end gap-2">
-            <div className="dark:text-slate-400 text-slate-600 font-bold">{CONTACT_EMAIL}</div>
+            <div className="dark:text-slate-400 text-slate-600 font-bold break-all text-center md:text-right">{CONTACT_EMAIL}</div>
             <div className="dark:text-slate-600 text-slate-400 text-sm font-medium">
               &copy; {currentYear} {BRAND_NAME}. All rights reserved.
             </div>

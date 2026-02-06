@@ -4,7 +4,7 @@ import MotionWrapper from './MotionWrapper';
 
 const About: React.FC = () => {
   return (
-    <section id="about" className="py-24 relative overflow-hidden">
+    <section id="about" className="py-24 relative w-full max-w-full overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <MotionWrapper direction="right">

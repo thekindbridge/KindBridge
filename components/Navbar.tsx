@@ -40,12 +40,12 @@ const Navbar: React.FC<NavbarProps> = ({ isDark, toggleTheme }) => {
   ];
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-[60] transition-all duration-500 ${isScrolled ? 'py-3' : 'py-5'}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-[60] w-full max-w-full overflow-x-hidden transition-all duration-500 ${isScrolled ? 'py-3' : 'py-5'}`}>
       <div className={`absolute inset-0 transition-opacity duration-500 ${isScrolled ? 'opacity-100' : 'opacity-0'}`}>
         <div className={`absolute inset-0 backdrop-blur-lg border-b ${isDark ? 'bg-slate-900/80 border-white/5' : 'bg-white/85 border-slate-200'}`} />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 relative flex items-center justify-between gap-3">
+      <div className="w-full max-w-7xl mx-auto px-4 md:px-8 relative flex items-center justify-between gap-3">
         <Link to={currentUser ? '/app' : '/login'} className="flex items-center gap-3 group shrink-0">
           <div className="relative w-10 h-10 flex items-center justify-center">
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-teal-400 rounded-xl group-hover:rotate-12 transition-transform duration-500 shadow-lg shadow-indigo-500/20" />
@@ -149,7 +149,7 @@ const Navbar: React.FC<NavbarProps> = ({ isDark, toggleTheme }) => {
         </div>
       </div>
 
-      <div className={`fixed inset-0 z-50 md:hidden transition-all duration-500 ease-in-out ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'} ${isDark ? 'bg-slate-950/95' : 'bg-white/95'} backdrop-blur-xl`}>
+      <div className={`fixed inset-0 z-50 md:hidden w-full max-w-full overflow-x-hidden transition-all duration-500 ease-in-out ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'} ${isDark ? 'bg-slate-950/95' : 'bg-white/95'} backdrop-blur-xl`}>
         <div className="flex flex-col items-center justify-center h-full gap-7 p-8">
           {showSectionLinks &&
             navLinks.map((link, i) => (

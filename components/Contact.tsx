@@ -28,7 +28,7 @@ const Contact: React.FC = () => {
                   </div>
                   <div>
                     <div className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Email Us</div>
-                    <div className="text-xl font-bold dark:text-white text-slate-900 group-hover:text-indigo-600 transition-colors">{CONTACT_EMAIL}</div>
+                    <div className="text-xl font-bold break-all dark:text-white text-slate-900 group-hover:text-indigo-600 transition-colors">{CONTACT_EMAIL}</div>
                   </div>
                 </a>
               </div>
