@@ -94,7 +94,7 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ isDark }) => {
               type="tel"
               value={mobile}
               onChange={(e) => setMobile(e.target.value)}
-              placeholder="+1 555 123 4567"
+              placeholder="+91 9876543210"
               className={`w-full h-12 px-4 rounded-2xl border focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${isDark ? 'bg-slate-950/50 border-white/10 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-600'}`}
             />
           </div>
